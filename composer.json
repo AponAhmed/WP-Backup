@@ -1,0 +1,20 @@
+{
+    "name": "aponahmed/wpbackup",
+    "description": "Wp Backup Plugin, Database and File",
+    "type": "wp-plugin",
+    "require": {
+        "ifsnop/mysqldump-php": "^2.9"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Aponahmed\\Wpbackup\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "MD. Muhiminul Haque",
+            "email": "apon2041@gmail.com"
+        }
+    ]
+}
