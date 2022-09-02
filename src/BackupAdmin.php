@@ -128,7 +128,10 @@ class BackupAdmin {
         $BackupOptionData = [];
         parse_str($_POST['formdata'], $BackupOptionData);
         $options = $BackupOptionData['options'];
-        $folderData = $BackupOptionData['backup-folders'];
+        $folderData = [];
+        if (isset($BackupOptionData['backup-folders'])) {
+            $folderData = $BackupOptionData['backup-folders'];
+        }
         //Update Option
         self::setOption($options);
         self::setFolders($folderData);

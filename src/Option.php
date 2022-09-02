@@ -79,6 +79,7 @@ trait Option {
         $opt = get_option(self::$optionKey);
         self::getFolders();
         $opt = json_decode($opt, true);
+        $opt = array_filter(array_map('trim', $opt));
         self::$options = (object) array_merge(self::default(), $opt);
     }
 

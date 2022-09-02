@@ -62,7 +62,11 @@ class BackUp {
         self::Option();
         try {
             $dump = new IMysqldump\Mysqldump('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASSWORD);
-            $dump->start($this->backupRoot . '/' . self::$options->dbfName);
+            $fileName = $this->backupRoot . '/' . self::$options->dbfName;
+            if (empty(self::$options->dbfName)) {
+                throw new \Exception("DB File Name Missing");
+            }
+            $dump->start($fileName);
             self::newHistory(['log' => 'Database Backup -> OK', 'key' => 'DB_DUMP']);
             ob_get_clean();
             echo 1;
