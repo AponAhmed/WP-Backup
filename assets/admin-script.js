@@ -133,7 +133,7 @@ class DialogBox {
 
 const fileBackup = function (param, _this) {
     addStatus('File Backup added in Queue', 'info');
-    addStatus('File coping to Backuup', 'process');
+    addStatus('File coping to Backup Directory', 'process');
     //Create Folder and Dump DB 
     Q.post(backupJS.ajax_url, {action: 'backup-file'}, function (response) {
         response = JSON.parse(response);
