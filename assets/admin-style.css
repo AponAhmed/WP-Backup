@@ -3,3 +3,252 @@
     Author     : Mahabub
 */
 
+.backup-tab {
+    max-width: 800px;
+}
+.wp-backup-tab {
+    display: none;
+}
+.wp-backup-tab.show {
+    display: block;
+}
+.wp-backup-tabs-wrap {
+    padding: 15px 8px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-top: 0;
+    min-height: 200px;
+}
+.backup-option-section {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.backup-option-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 475px;
+    margin-bottom: 8px;
+}
+.backup-option-wrap > label {
+    width: 120px;
+    font-weight: 600;
+}
+#folderSelect {
+    max-width: initial;
+    align-items: baseline;
+}
+.backup-option-wrap select, .backup-option-wrap .folderSelector, .backup-option-wrap .input-area {
+    flex-grow: 1;
+    max-width: calc(100% - 120px);
+}
+.folderSelector > ul li ul {
+    padding-left: 10px;
+    margin-left: 7px;
+    border-left: 1px solid #ddd;
+    display: none;
+}
+.folderSelector > ul li ul li {
+    position: relative;
+    margin: 0;
+    line-height: 1.7;
+}
+.folderSelector > ul li ul li::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 11px;
+    width: 10px;
+    height: 1px;
+    background: #ddd;
+}
+.folder-item-control label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.folder-item-control {
+    display: flex;
+    align-items: center;
+    height: 26px;
+    position: relative;
+}
+.folderSelector > ul > li > ul .folder-item > .folder-item-control > label::after {
+    content: "+";
+    position: absolute;
+    left: -15px;
+    top: 0px;
+    color: #999;
+}
+
+.folderSelector > ul > li > ul .folder-item.has-child > .folder-item-control > label::after {
+    color: green;
+    font-size: 18px;
+    left: -17px;
+    top: -5px;
+    font-weight: 600;
+}
+.folderSelector > ul > li > ul .folder-item.has-child.open > .folder-item-control > label::after {
+    content: "-";
+    color: red;
+    font-size: 28px;
+    top: -16px;
+}
+.folderSelector > ul > li > ul {
+    display: block !important;
+}
+
+/*Backup Status*/
+
+.backup-status .status-item {
+    font-size: 12px;
+    width: 100%;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+.status-item.info {
+    color: #94cfff;
+}
+.backup-status {
+    background: #242424;
+    padding: 6px 15px;
+    border-radius: 5px;
+    border: 1px solid #000;
+    flex-flow: column-reverse;
+    max-height: 150px;
+    overflow: auto;
+}
+.backup-status .status-item span:first-child {
+    color: #646464;
+    margin-right: 10px;
+    width: 10px;
+    display: inline-block;
+    text-align: center;
+    border-right: 1px solid #4f4f4f;
+    padding-right: 10px;
+}
+.status-item.success {
+    color: #35ff35;
+}
+.status-item.error {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0 !important;
+    color: #ff5050;
+}
+.status-item.process {
+    color: #fff;
+}
+.backup-status .status-item .dashicons {
+    color: inherit;
+    margin-right: 3px;
+    font-size: 14px;
+    margin-top: 3px;
+    line-height: 1;
+    max-height: 15px;
+}
+
+.backup-option-wrap input[type="text"], .backup-option-wrap input[type="password"], .backup-option-wrap select {
+    min-height: auto;
+    height: 28px;
+    border-radius: 0;
+    border-color: #d9d8d8;
+    line-height: 1;
+    width: 100%;
+}
+.backupDown {
+    margin-left: 15px !important;
+}
+
+.bflex {
+    display: flex;
+}
+
+.ftpConfig .backup-option-wrap {
+    background: #f9f9f9;
+    padding: 7px 0px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding-right: 5px;
+}
+.ftpConfig .backup-option-wrap .bflex {
+    margin-bottom: 5px;
+}
+.ftpConfig .backup-option-wrap .bflex:last-child {
+    margin-bottom: 0;
+}
+.ftpConfig label {
+    padding-left: 20px;
+    width: auto;
+}
+.backupTypeConfig{
+    display:none;
+}
+.backupTypeConfig.config-show{
+    display:block;
+}
+.backup-status .status-item a {
+    color: #c7f4f9;
+    border: 1px solid #808080;
+    padding: 0 4px;
+    text-decoration: none;
+    line-height: 1;
+    text-transform: uppercase;
+    border-radius: 4px;
+    background: #555;
+    font-size: 11px;
+}
+
+
+/**Dialog*/
+.dialog-box {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    min-width: 350px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+    z-index: 9999;
+}
+.dialog-box .header {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px;
+}
+.dialog-box .header .title-wrap {
+    font-size: 18px;
+    font-weight: 500;
+}
+.dialog-box .header .close-button {
+    font-size: 24px;
+    line-height: 0;
+    position: absolute;
+    right: 0;
+    padding: 10px;
+    top: 0;
+    color: #ff7e7e;
+    cursor: pointer;
+}
+.dialog-box .body {
+    overflow-y: auto;
+    padding: 10px;
+    max-height: 400px;
+}
+.dialog-box .actions {
+    display: flex;
+    padding: 10px;
+}
+.dialog-box .actions .action {
+    padding: 4px 24px;
+    margin-right: 10px;
+    background: #ddd;
+    cursor: pointer;
+}
+.dialog-box .actions .action.btn-primary {
+    background: var(--primary-color);
+}

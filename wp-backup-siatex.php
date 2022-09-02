@@ -14,8 +14,11 @@ namespace Aponahmed\Wpbackup;
 use Aponahmed\Wpbackup\BackupAdmin;
 
 require_once 'vendor/autoload.php';
+define('_BACKUP_ROOT', WP_CONTENT_DIR);
+define('_BACKUP_DIR_DEPTH', 3);
 //Backup folder where Write backup file
 define('__BACKUP_DIR', ABSPATH);
+define('FILE_NAME', "[site]_[date]"); //Download Zip File 
 //Static Assets 
 define('__BACKUP_ASSETS', plugin_dir_url(__FILE__) . "assets/");
 
@@ -34,5 +37,5 @@ class WpBackup {
 
 }
 
-$backup = new WpBackup(__BACKUP_DIR);
+$backup = new WpBackup();
 
