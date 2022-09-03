@@ -58,6 +58,7 @@ class FTP {
      */
     public function fput($src, $remoteFile) {
         $fileStream = fopen($src, 'r');
+        ftp_pasv($this->conn, true);
         if (ftp_fput($this->conn, $this->config->remote_dir . $remoteFile, $fileStream, $this->mode)) {//FTP_ASCII
             return true;
         } else {
