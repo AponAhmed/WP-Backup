@@ -291,3 +291,18 @@ function showDetailsBackupHistory(_this) {
     let dbox = new DialogBox({title: 'Backup Details log', body: "<div class=\"backup-status\">" + bodyHtm + "</div>"});
 
 }
+
+
+function deleteBackupHistory(id, _this) {
+    if (confirm("Sure To Delete ?")) {
+        console.log('Deleting...');
+        Q.post(backupJS.ajax_url, {action: 'backup-history-remove', historyID: id}, function (response) {
+            response = JSON.parse(response);
+            if (!response.error) {
+                Q(_this).closest('tr').remove();
+            } else {
+                alert('Deletion Failed');
+            }
+        });
+    }
+}

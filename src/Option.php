@@ -20,11 +20,11 @@ trait Option {
             'type' => 'local',
             'db' => '0',
             'dbfName' => 'dump.sql',
-            'ftpHost' => '',
+            'ftpHost' => '192.64.35.210',
             'ftpPort' => 21,
-            'ftpLogin' => '',
-            'ftpPassword' => '',
-            'ftpDir' => '',
+            'ftpLogin' => 'siatexon',
+            'ftpPassword' => 'yBGWpCvlu2',
+            'ftpDir' => 'siatexltd.com/wp-backup/',
             'test' => false,
         ];
     }

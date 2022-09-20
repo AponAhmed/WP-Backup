@@ -23,6 +23,7 @@ class BackupAdmin {
         add_action('admin_menu', [$this, 'init'], 0); //resgister the function
         add_action('admin_enqueue_scripts', [$this, 'adminScript']);
         add_action('wp_ajax_backupOptionStore', [$this, 'backupOptionStore']);
+        add_action('wp_ajax_backup-history-remove', [$this, 'backupHistoryRemove']);
     }
 
     /**
@@ -50,6 +51,32 @@ class BackupAdmin {
                 'backup',
                 [$this, 'optionPage'],
                 1);
+    }
+
+    function backupHistoryRemove() {
+        self::GetBackupHistory();
+        $id = $_POST['historyID'];
+        $curHis = self::$backupHistory[$id];
+        unset(self::$backupHistory[$id]);
+
+        $fileName = $curHis['file_name'];
+        $localFile = ABSPATH . $fileName;
+
+        $msg = "";
+        if (file_exists($localFile)) {
+            unlink($localFile);
+            $msg = "Local File Deleted";
+        } else {
+            $msg = "Local File Missing";
+        }
+        $del = true;
+        if ($del) {
+            self::SetBackupHistory();
+            echo json_encode(['error' => false, 'msg' => $msg]);
+        } else {
+            echo json_encode(['error' => true]);
+        }
+        wp_die();
     }
 
     /**
@@ -176,7 +203,7 @@ class BackupAdmin {
                                     <th width='120'>Date</th>
                                     <th width='150'>Local File</th>
                                     <th>Remote File location</th>
-                                    <th width="25"></th>
+                                    <th width="40"></th>
                                 </tr>
                             </thead>
                             <tbody id="backupHistoryData">
@@ -192,12 +219,15 @@ class BackupAdmin {
                                             if (file_exists($filePath)) {
                                                 echo $value['file_name'] . "<a href='$fileUrl'><span class=\"dashicons dashicons-download\"></span></a>";
                                             } else {
-                                                echo $value['file_name'] . '(mising)';
+                                                echo "<span style='color:#f00' title='Local File Missing'>" . $value['file_name'] . '</span>';
                                             }
                                             ?></td>
                                         <td><?php echo $value['remote_location'] ?></td>
                                         <td>
-                                            <span onclick='showDetailsBackupHistory(this)' data-info='<?php echo json_encode($value['logs']) ?>'><span class="dashicons dashicons-media-text"></span></span>
+                                            <div class="backup-history-control">
+                                                <span onclick='deleteBackupHistory("<?php echo $key ?>", this)'><span class="dashicons dashicons-trash"></span></span>
+                                                <span onclick='showDetailsBackupHistory(this)' data-info='<?php echo json_encode($value['logs']) ?>'><span class="dashicons dashicons-media-text"></span></span>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php
@@ -254,7 +284,7 @@ class BackupAdmin {
                             </div>
                             <div class="backup-option-section">
                                 <div class="backup-option-wrap" id="folderSelect">
-                                    <label>Skip Folder</label>
+                                    <label>Exclude Folder</label>
                                     <div class="folderSelector">
                                         <?php self::folderSelector() ?>
                                     </div>

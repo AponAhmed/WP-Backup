@@ -252,3 +252,8 @@
 .dialog-box .actions .action.btn-primary {
     background: var(--primary-color);
 }
+
+.backup-history-control {
+    display: flex;
+    width: 40px;
+}
