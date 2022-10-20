@@ -36,11 +36,14 @@ class BackUp {
         //Create Folder
         $folderNameTemplate = FILE_NAME;
         $siteName = get_bloginfo();
+
+        $siteUrl = site_url();
+        $domain = str_replace(['http://', 'https://', 'www.', '/'], ["", "", "", "~"], $siteUrl);
+
         $date = date('d-m-Y');
         $folderName = str_replace(
-                ['[site]', '[date]']
-                ,
-                [$siteName, $date],
+                ['[site]', '[date]', '[domain]'],
+                [$siteName, $date, $domain],
                 $folderNameTemplate);
         if ($returnName) {
             return $folderName;

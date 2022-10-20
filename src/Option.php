@@ -68,7 +68,7 @@ trait Option {
 
     static function backupHistory() {
         self::GetBackupHistory();
-        return self::$backupHistory;
+        return is_array(self::$backupHistory) ? self::$backupHistory : [];
     }
 
     /**
@@ -79,6 +79,7 @@ trait Option {
         $opt = get_option(self::$optionKey);
         self::getFolders();
         $opt = json_decode($opt, true);
+        $opt = !is_array($opt) ? [] : $opt;
         $opt = array_filter(array_map('trim', $opt));
         self::$options = (object) array_merge(self::default(), $opt);
     }

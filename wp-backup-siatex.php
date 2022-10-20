@@ -6,7 +6,7 @@
  * Description: Backup WP web-site, Content Folder and Data  
  * Author: SiATEX
  * Author URI: https://www.siatex.com
- * Version: 1.1.2
+ * Version: 1.1.3
  */
 
 namespace Aponahmed\Wpbackup;
@@ -18,7 +18,7 @@ define('_BACKUP_ROOT', WP_CONTENT_DIR);
 define('_BACKUP_DIR_DEPTH', 3);
 //Backup folder where Write backup file
 define('__BACKUP_DIR', ABSPATH);
-define('FILE_NAME', "[site]_[date]"); //Download Zip File 
+define('FILE_NAME', "[site]([domain])-[date]"); //Download Zip File //[site],[date],[domain]
 //Static Assets 
 define('__BACKUP_ASSETS', plugin_dir_url(__FILE__) . "assets/");
 
