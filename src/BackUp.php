@@ -4,19 +4,23 @@ namespace Aponahmed\Wpbackup;
 
 use Ifsnop\Mysqldump as IMysqldump;
 use Aponahmed\Wpbackup\FTP;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RecursiveCallbackFilterIterator;
+use FilesystemIterator;
+use ZipArchive;
 
 /**
  * Description of BackUp
- *
- * @author Mahabub
  */
-class BackUp {
-
+class BackUp
+{
     use Option;
 
     private $backupRoot = false;
 
-    public function __construct() {
+    public function __construct()
+    {
         add_action('wp_ajax_backup-db', [$this, 'backup_db']);
         add_action('wp_ajax_backup-file', [$this, 'backup_file']);
         add_action('wp_ajax_backup-zip', [$this, 'backup_zip']);
@@ -26,14 +30,16 @@ class BackUp {
     /**
      * Create Backup Folder
      */
-    function init($returnName = false) {
+    function init($returnName = false)
+    {
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
         ini_set('max_execution_time', 3000);
+        ini_set('memory_limit', '512M');
 
         $location = __BACKUP_DIR;
-        //Create Folder
+        // Create Folder
         $folderNameTemplate = FILE_NAME;
         $siteName = get_bloginfo();
 
@@ -42,25 +48,25 @@ class BackUp {
 
         $date = date('d-m-Y');
         $folderName = str_replace(
-                ['[site]', '[date]', '[domain]'],
-                [$siteName, $date, $domain],
-                $folderNameTemplate);
+            ['[site]', '[date]', '[domain]'],
+            [$siteName, $date, $domain],
+            $folderNameTemplate
+        );
         if ($returnName) {
             return $folderName;
         }
         $folderPath = $location . $folderName;
         if (!is_dir($folderPath)) {
-            mkdir($folderPath, 0777);
+            mkdir($folderPath, 0777, true);
             chmod($folderPath, 0777);
             $this->backupRoot = $folderPath;
-            //self::newHistory(true);
         } else {
             $this->backupRoot = $folderPath;
         }
     }
 
-    //put your code here
-    function backup_db() {
+    function backup_db()
+    {
         $this->init();
         self::Option();
         try {
@@ -81,68 +87,76 @@ class BackUp {
         wp_die();
     }
 
-    function backup_file() {
+    function backup_file()
+    {
         $this->init();
         self::Option();
-        //Root Dir 
         $root = _BACKUP_ROOT;
-        //Pathinfo
-        $rootPathInfo = pathinfo($root);
-        $rootBase = $rootPathInfo['basename'];
-        $NewBasname = pathinfo($this->backupRoot);
-        //echo json_encode(['error' => 'Something Went Wrong']);
-        //wp_die();
-        try {
-            self::recurse_copy($root, $this->backupRoot . "/$rootBase/", $rootBase);
-            self::newHistory(['log' => 'File Backup to Local -> OK', 'key' => 'FILE_COPY']);
-            ob_get_clean();
-            echo json_encode(['error' => false, 'file' => $NewBasname['basename']]);
-        } catch (\Exception $e) {
-            self::newHistory(['log' => 'File Backup -> Error', 'key' => 'FILE_COPY']);
-            ob_get_clean();
-            echo json_encode(['error' => $e->getMessage()]);
+        $backupDir = $this->backupRoot . '/' . basename($root);
+
+        $skip = self::$folders;
+
+        // Check if rsync is available
+        $returnVar = 0;
+        $cmd = "rsync -a --exclude='.*' $root $backupDir";
+        if (function_exists('exec')) {
+            exec($cmd, $output, $returnVar);
         }
+
+        if ($returnVar !== 0) {
+            // Fallback to PHP copy with filtering
+            try {
+                $this->recurse_copy($root, $backupDir, $skip);
+                self::newHistory(['log' => 'File Backup to Local -> OK', 'key' => 'FILE_COPY']);
+                echo json_encode(['error' => false, 'file' => basename($backupDir)]);
+            } catch (\Exception $e) {
+                self::newHistory(['log' => 'File Backup -> Error', 'key' => 'FILE_COPY']);
+                echo json_encode(['error' => $e->getMessage()]);
+            }
+        } else {
+            self::newHistory(['log' => 'File Backup to Local -> OK', 'key' => 'FILE_COPY']);
+            echo json_encode(['error' => false, 'file' => basename($backupDir)]);
+        }
+
         wp_die();
     }
 
-    static function recurse_copy($res, $dest, $baseRoot) {
-        $skip = self::$folders;
-        $dir = opendir($res);
-        //Destination Create folder;
-        if (!is_dir($dest)) {
-            mkdir($dest, 0777, true);
-            chmod($dest, 0777);
-        }
-
-        while (false !== ( $file = readdir($dir))) {
-            if (( $file != '.' ) && ( $file != '..' )) {
-                if (is_dir($res . '/' . $file)) {
-                    $nRoot = $baseRoot . "-" . $file;
-                    $k = self::nameFilter($nRoot);
-                    if (isset($skip[$k]) && $skip[$k] == "1") {
-                        //echo " skiped $file <br>";
-                        continue;
-                    }
-                    //echo "Copied $file - $k <br>";
-                    self::recurse_copy($res . '/' . $file, $dest . '/' . $file, $nRoot);
-                } else {
-                    \copy($res . '/' . $file, $dest . '/' . $file);
-                }
+    function recurse_copy($src, $dst, $skip)
+    {
+        $directory = new RecursiveDirectoryIterator($src, FilesystemIterator::FOLLOW_SYMLINKS);
+        $filter = new RecursiveCallbackFilterIterator($directory, function ($current, $key, $iterator) use ($skip) {
+            if ($current->getFilename()[0] === '.') {
+                return false;
             }
+            if ($current->isDir()) {
+                $nRoot = basename($current->getPath()) . "-" . $current->getFilename();
+                $k = self::nameFilter($nRoot);
+                return !isset($skip[$k]) || $skip[$k] != "1";
+            } else {
+                return true;
+            }
+        });
+
+        $iterator = new RecursiveIteratorIterator($filter);
+        foreach ($iterator as $file) {
+            $srcPath = $file->getPathname();
+            $dstPath = $dst . '/' . $iterator->getSubPathName();
+            if (!is_dir(dirname($dstPath))) {
+                mkdir(dirname($dstPath), 0777, true);
+                chmod(dirname($dstPath), 0777);
+            }
+            copy($srcPath, $dstPath);
         }
-        closedir($dir);
     }
 
-    function backup_zip() {
+    function backup_zip()
+    {
         $this->init();
         self::Option();
-        //Folder // ;
-        // echo json_encode(['error' => 'Error with ZIP']);
-        //wp_die();
 
         $outputFile = $this->init(true) . ".zip";
         if ($this->myZip($this->backupRoot)) {
-            $this->rrmdir($this->backupRoot); //Delete Folder;
+            $this->rrmdir($this->backupRoot); // Delete Folder
             self::newHistory(['log' => 'File & DB Compression -> OK', 'key' => 'FILE_COMPRES']);
             self::newHistory(['file_name' => $outputFile]);
             ob_get_clean();
@@ -154,38 +168,47 @@ class BackUp {
         wp_die();
     }
 
-    function myZip($rootPath) {
-        // Get real path for our folder
-        $rootPath = $rootPath;
-        // Initialize archive object
-        $zip = new \ZipArchive();
-        $zip->open($rootPath . '.zip', \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-        // Create recursive directory iterator
-        /** @var SplFileInfo[] $files */
-        $files = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($rootPath), \RecursiveIteratorIterator::LEAVES_ONLY
-        );
-        foreach ($files as $name => $file) {
-            // Skip directories (they would be added automatically)
-            if (!$file->isDir()) {
-                // Get real and relative path for current file
-                $filePath = $file->getRealPath();
+    function myZip($rootPath)
+    {
+        $zipPath = $rootPath . '.zip';
+        
+        $returnVar = 0;
+        $cmd = "7z a $zipPath $rootPath";
+        if (function_exists('exec')) {
+            exec($cmd, $output, $returnVar);
+        }
 
-                $relativePath = substr($filePath, strlen($rootPath));
-                $relativePath = substr($relativePath, 1, strlen($relativePath) - 1);
-                // Add current file to archive
-                $zip->addFile($filePath, $relativePath);
+        if ($returnVar !== 0) {
+            return true;
+        } else {
+            $zip = new \ZipArchive();
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+                $directory = new RecursiveDirectoryIterator($rootPath, FilesystemIterator::FOLLOW_SYMLINKS);
+                $filter = new RecursiveCallbackFilterIterator($directory, function ($current, $key, $iterator) {
+                    return $current->getFilename()[0] !== '.';
+                });
+
+                $files = new RecursiveIteratorIterator($filter);
+                foreach ($files as $file) {
+                    if (!$file->isDir()) {
+                        $filePath = $file->getRealPath();
+                        $relativePath = substr($filePath, strlen($rootPath) + 1);
+                        $zip->addFile($filePath, $relativePath);
+                    }
+                }
+                $zip->close();
+                return true;
+            } else {
+                return false;
             }
         }
-        // Zip archive will be created only after closing object
-        return $zip->close();
-        //sleep(1);
     }
 
-    function rrmdir($src) {
+    function rrmdir($src)
+    {
         $dir = opendir($src);
-        while (false !== ( $file = readdir($dir))) {
-            if (( $file != '.' ) && ( $file != '..' )) {
+        while (false !== ($file = readdir($dir))) {
+            if (($file != '.') && ($file != '..')) {
                 $full = $src . '/' . $file;
                 if (is_dir($full)) {
                     $this->rrmdir($full);
@@ -195,10 +218,11 @@ class BackUp {
             }
         }
         closedir($dir);
-        return @\rmdir($src);
+        return @rmdir($src);
     }
 
-    function backup_uploadftp() {
+    function backup_uploadftp()
+    {
         $this->init();
         self::Option();
         $file = $_POST['file'];
@@ -218,7 +242,7 @@ class BackUp {
             $fileFullPAth = __BACKUP_DIR . $file;
             $res = $ftp->fput($fileFullPAth, $file);
             if ($res) {
-                $this->rrmdir($this->backupRoot); //Delete Folder;
+                $this->rrmdir($this->backupRoot); // Delete Folder
 
                 self::newHistory(['log' => 'File Uploaded via FTP -> OK', 'key' => 'FTP_UPLOAD']);
                 self::newHistory(['remote_location' => self::$options->ftpHost . " > " . self::$options->ftpDir . $file]);
@@ -230,5 +254,4 @@ class BackUp {
         }
         wp_die();
     }
-
 }
