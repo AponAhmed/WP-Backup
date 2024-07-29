@@ -10,14 +10,16 @@ use Aponahmed\Wpbackup\FTP;
  *
  * @author Mahabub
  */
-class BackupAdmin {
+class BackupAdmin
+{
 
     use Option;
 
     private $BackUp;
 
     //put your code here
-    public function __construct() {
+    public function __construct()
+    {
         Option::Option();
         $this->BackUp = new BackUp();
         add_action('admin_menu', [$this, 'init'], 0); //resgister the function
@@ -29,31 +31,38 @@ class BackupAdmin {
     /**
      * Admin Script Init
      */
-    public function adminScript($hook) {
+    public function adminScript($hook)
+    {
         wp_enqueue_style('backup-admin-style', __BACKUP_ASSETS . 'admin-style.css');
 
         wp_enqueue_script('backup-admin-script', __BACKUP_ASSETS . 'admin-script.js', array('jquery'), '1.0');
-        wp_localize_script('backup-admin-script', 'backupJS',
-                array(
-                    'ajax_url' => admin_url('admin-ajax.php'),
-                    'siteUrl' => site_url()
-                )
+        wp_localize_script(
+            'backup-admin-script',
+            'backupJS',
+            array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'siteUrl' => site_url()
+            )
         );
         //}
     }
 
-    function init() {
+    function init()
+    {
         //Admin Page Initialize 
         add_submenu_page(
-                'tools.php',
-                'Backup', 'Backup',
-                'manage_options',
-                'backup',
-                [$this, 'optionPage'],
-                1);
+            'tools.php',
+            'Backup',
+            'Backup',
+            'manage_options',
+            'backup',
+            [$this, 'optionPage'],
+            1
+        );
     }
 
-    function backupHistoryRemove() {
+    function backupHistoryRemove()
+    {
         self::GetBackupHistory();
         $id = $_POST['historyID'];
         $curHis = self::$backupHistory[$id];
@@ -81,12 +90,13 @@ class BackupAdmin {
 
     /**
      * 
-     * @param type $dir
+     * @param string $dir
      * @param string $relDir 
-     * @param type $step Maximum Stem recursion
+     * @param int $step Maximum Stem recursion
      * @return type
      */
-    static function folderData($dir, $relDir, $step) {
+    static function folderData($dir, $relDir, $step)
+    {
         $step--;
         $folders = [];
         if ($step > 0) {
@@ -111,7 +121,8 @@ class BackupAdmin {
         return $folders;
     }
 
-    static function folderSelector() {
+    static function folderSelector()
+    {
         $dir = _BACKUP_ROOT;
         $pathInfo = pathinfo($dir);
         $relDir = $pathInfo['basename'];
@@ -124,7 +135,8 @@ class BackupAdmin {
         echo self::folderHtml($folders);
     }
 
-    static function folderHtml($folders) {
+    static function folderHtml($folders)
+    {
         self::Option();
         $foldersOpt = self::$folders;
         $html = "<ul>";
@@ -151,7 +163,8 @@ class BackupAdmin {
         return $html;
     }
 
-    function backupOptionStore() {
+    function backupOptionStore()
+    {
         $BackupOptionData = [];
         parse_str($_POST['formdata'], $BackupOptionData);
         $options = $BackupOptionData['options'];
@@ -166,20 +179,26 @@ class BackupAdmin {
         wp_die();
     }
 
-    function backupHistoryData() {
+    function backupHistoryData()
+    {
         echo json_encode(self::backupHistory());
     }
 
-    function optionPage() {
+    function optionPage()
+    {
         self::Option();
         $foldersOpt = self::$folders;
+
         $options = self::$options;
+        // Check if ZipArchive is enabled
+        $zipEnabled = class_exists('ZipArchive');
         //echo "<pre>";
         //var_dump($options);
         //echo "</pre>";
-        ?>
+?>
         <div class="wrap wp-backup-wrap">
-            <h1 class="wp-heading-inline">Backup</h1><hr>
+            <h1 class="wp-heading-inline">Backup</h1>
+            <hr>
             <div class="backup-tab">
                 <nav class="nav-tab-wrapper">
                     <a href="#backupPanel" class="nav-tab  nav-tab-active">Backup</a>
@@ -192,7 +211,7 @@ class BackupAdmin {
                             <button type="button" class="button button-primary" id="backupStart" onclick="startBackup(this)">Backup</button>
                             <span class="description" style="margin-left: 25px;margin-top: 6px;display: inline-block;color: #999;">Server Execution time should be longer then normal time</span>
                         </div>
-                        <div class="backup-option-section"  style="border-bottom: 0">
+                        <div class="backup-option-section" style="border-bottom: 0">
                             <div class="backup-status hide"></div>
                         </div>
                     </div>
@@ -210,18 +229,18 @@ class BackupAdmin {
                                 <?php
                                 foreach (self::backupHistory() as $key => $value) {
                                     //var_dump($value);
-                                    ?>
+                                ?>
                                     <tr>
                                         <td width='100'><?php echo date('d-m-y h:i a', $value['time']) ?></td>
                                         <td width='150'><?php
-                                            $filePath = __BACKUP_DIR . $value['file_name'];
-                                            $fileUrl = site_url() . "/" . $value['file_name'];
-                                            if (file_exists($filePath)) {
-                                                echo $value['file_name'] . "<a href='$fileUrl'><span class=\"dashicons dashicons-download\"></span></a>";
-                                            } else {
-                                                echo "<span style='color:#f00' title='Local File Missing'>" . $value['file_name'] . '</span>';
-                                            }
-                                            ?></td>
+                                                        $filePath = __BACKUP_DIR . $value['file_name'];
+                                                        $fileUrl = site_url() . "/" . $value['file_name'];
+                                                        if (file_exists($filePath)) {
+                                                            echo $value['file_name'] . "<a href='$fileUrl'><span class=\"dashicons dashicons-download\"></span></a>";
+                                                        } else {
+                                                            echo "<span style='color:#f00' title='Local File Missing'>" . $value['file_name'] . '</span>';
+                                                        }
+                                                        ?></td>
                                         <td><?php echo $value['remote_location'] ?></td>
                                         <td>
                                             <div class="backup-history-control">
@@ -230,7 +249,7 @@ class BackupAdmin {
                                             </div>
                                         </td>
                                     </tr>
-                                    <?php
+                                <?php
                                 }
                                 ?>
                             </tbody>
@@ -242,8 +261,8 @@ class BackupAdmin {
                                 <div class="backup-option-wrap">
                                     <label>Backup Type</label>
                                     <select name="options[type]" id="backupType" class="custom-select custom-select-sm">
-                                        <option value="local" <?php echo $options->type == 'local' ? 'selected' : "" ?> >Download</option>
-                                        <option value="ftp" <?php echo $options->type == 'ftp' ? 'selected' : "" ?> >FTP</option>
+                                        <option value="local" <?php echo $options->type == 'local' ? 'selected' : "" ?>>Download</option>
+                                        <option value="ftp" <?php echo $options->type == 'ftp' ? 'selected' : "" ?>>FTP</option>
                                         <option disabled="" <?php echo $options->type == 's3' ? 'selected' : "" ?> title="Comming soon" value="s3">S3</option>
                                     </select>
                                 </div>
@@ -300,11 +319,14 @@ class BackupAdmin {
 
                         </form>
                     </div>
-
+                    <?php if (!$zipEnabled) : ?>
+                        <div class="notice notice-error is-dismissible">
+                            <p><strong>Attention:</strong> The <code>ZipArchive</code> extension is not enabled on your server. backup features may not work correctly.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
-        <?php
+<?php
     }
-
 }
