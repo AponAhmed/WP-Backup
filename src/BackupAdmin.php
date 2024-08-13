@@ -20,7 +20,7 @@ class BackupAdmin
     //put your code here
     public function __construct()
     {
-        Option::Option();
+        self::Option();
         $this->BackUp = new BackUp();
         add_action('admin_menu', [$this, 'init'], 0); //resgister the function
         add_action('admin_enqueue_scripts', [$this, 'adminScript']);
