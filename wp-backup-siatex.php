@@ -6,7 +6,7 @@
  * Description: Backup WP web-site, Content Folder and Data  
  * Author: SiATEX
  * Author URI: https://www.siatex.com
- * Version: 1.1.6
+ * Version: 1.1.7
  */
 
 namespace Aponahmed\Wpbackup;
